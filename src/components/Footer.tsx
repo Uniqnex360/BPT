@@ -27,7 +27,7 @@ export default function Footer({ onNavigate }: Props) {
           {/* Brand */}
           <div className="md:col-span-1">
             <button onClick={() => onNavigate('home')} className="flex items-center mb-4">
-              <img src="/image.png" alt="bepositivethinking" className="h-20 w-20 object-contain" />
+              <img src="/image.png" alt="bepositivethinking" className="h-32 w-32 object-contain" />
             </button>
             <p className="text-xs text-gray-500 italic mb-2">Thoughts That Change Lives</p>
             <p className="text-sm leading-relaxed text-gray-500">

@@ -43,9 +43,9 @@ export default function Header({ currentPage, onNavigate, isAdmin }: Props) {
         scrolled ? 'bg-white/95 backdrop-blur-sm shadow-sm' : 'bg-transparent'
       }`}
     >
-      <div className="max-w-6xl mx-auto px-6 py-1 flex items-center justify-between">
+      <div className="max-w-6xl mx-auto px-6 py-0 flex items-center justify-between">
         <button onClick={() => onNavigate('home')} className="flex items-center">
-          <img src="/image.png" alt="bepositivethinking" className="h-24 w-24 object-contain" />
+          <img src="/image.png" alt="bepositivethinking" className="h-32 w-32 object-contain" />
         </button>
 
         <nav className="hidden md:flex items-center gap-7">
