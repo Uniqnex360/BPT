@@ -1,98 +1,193 @@
-import { useEffect, useState } from 'react';
-import { supabase } from './lib/supabase';
-import Header from './components/Header';
-import Footer from './components/Footer';
-import HomePage from './pages/HomePage';
-import ArticlesPage from './pages/ArticlesPage';
-import ArticlePage from './pages/ArticlePage';
-import AdminPage from './pages/AdminPage';
-import LoginPage from './pages/LoginPage';
-import SubmitArticlePage from './pages/SubmitArticlePage';
-import type { User } from '@supabase/supabase-js';
+import { useEffect, useState } from "react";
+import {
+  Routes,
+  Route,
+  Navigate,
+  useNavigate,
+  useLocation,
+  useParams,
+} from "react-router-dom";
 
-export type Page = 'home' | 'articles' | 'article' | 'admin' | 'login' | 'submit';
+import { supabase } from "./lib/supabase";
+import type { User } from "@supabase/supabase-js";
 
-function getInitialPage(): Page {
-  const hash = window.location.hash;
-  if (hash === '#/admin') return 'login';
-  return 'home';
-}
+import Header from "./components/Header";
+import Footer from "./components/Footer";
+
+import HomePage from "./pages/HomePage";
+import ArticlesPage from "./pages/ArticlesPage";
+import ArticlePage from "./pages/ArticlePage";
+import AdminPage from "./pages/AdminPage";
+import LoginPage from "./pages/LoginPage";
+import SubmitArticlePage from "./pages/SubmitArticlePage";
+
+export type Page =
+  | "home"
+  | "articles"
+  | "article"
+  | "admin"
+  | "login"
+  | "submit"
+  | "write-us";
 
 export default function App() {
-  const [currentPage, setCurrentPage] = useState<Page>(getInitialPage());
-  const [articleSlug, setArticleSlug] = useState<string>('');
   const [user, setUser] = useState<User | null>(null);
+  const [loading, setLoading] = useState(true);
+
+  const navigate = useNavigate();
+  const location = useLocation();
 
   useEffect(() => {
-    supabase.auth.getSession().then(({ data: { session } }) => {
+    async function loadSession() {
+      const {
+        data: { session },
+      } = await supabase.auth.getSession();
+
       setUser(session?.user ?? null);
-      if (session?.user && window.location.hash === '#/admin') {
-        setCurrentPage('admin');
-      }
+      setLoading(false);
+    }
+
+    loadSession();
+
+    const {
+      data: { subscription },
+    } = supabase.auth.onAuthStateChange((_event, session) => {
+      setUser(session?.user ?? null);
     });
 
-    supabase.auth.onAuthStateChange((_event, session) => {
-      setUser(session?.user ?? null);
-    });
-
-    const onHashChange = () => {
-      if (window.location.hash === '#/admin') {
-        setCurrentPage(prev => prev === 'admin' ? 'admin' : 'login');
-      }
-    };
-    window.addEventListener('hashchange', onHashChange);
-    return () => window.removeEventListener('hashchange', onHashChange);
+    return () => subscription.unsubscribe();
   }, []);
 
-  function navigate(page: Page, slug?: string) {
-    if (page === 'admin' && !user) {
-      window.location.hash = '#/admin';
-      setCurrentPage('login');
-      return;
+  function routeNavigate(page: Page, slug?: string) {
+    switch (page) {
+      case "home":
+        navigate("/");
+        break;
+
+      case "articles":
+        navigate("/articles");
+        break;
+
+      case "article":
+        if (slug) {
+          navigate(`/articles/${slug}`);
+        }
+        break;
+
+      case "submit":
+        navigate("/submit");
+        break;
+
+      case "write-us":
+        navigate("/write-for-us");
+        break;
+
+      case "admin":
+        if (user) {
+          navigate("/admin");
+        } else {
+          navigate("/login");
+        }
+        break;
+
+      case "login":
+        navigate("/login");
+        break;
+
+      default:
+        navigate("/");
     }
-    if (page === 'admin') {
-      window.location.hash = '#/admin';
-    } else if (window.location.hash === '#/admin') {
-      window.location.hash = '';
-    }
-    if (page === 'article' && slug) {
-      setArticleSlug(slug);
-    }
-    setCurrentPage(page);
-    window.scrollTo(0, 0);
+
+    window.scrollTo({
+      top: 0,
+      behavior: "smooth",
+    });
   }
 
   function handleLoginSuccess() {
-    setCurrentPage('admin');
+    navigate("/admin");
   }
 
   function handleLogout() {
-    window.location.hash = '';
-    setCurrentPage('home');
+    supabase.auth.signOut();
+    navigate("/");
   }
 
-  const hideChrome = currentPage === 'login' || currentPage === 'admin';
+  const hideChrome =
+    location.pathname === "/login" || location.pathname === "/admin";
+
+  if (loading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        Loading...
+      </div>
+    );
+  }
 
   return (
     <div className="font-sans antialiased">
-      {!hideChrome && (
-        <Header currentPage={currentPage} onNavigate={navigate} isAdmin={!!user} />
-      )}
+      {!hideChrome && <Header onNavigate={routeNavigate} isAdmin={!!user} />}
 
       <main>
-        {currentPage === 'home' && <HomePage onNavigate={navigate} />}
-        {currentPage === 'articles' && <ArticlesPage onNavigate={navigate} />}
-        {currentPage === 'article' && <ArticlePage slug={articleSlug} onNavigate={navigate} />}
-        {currentPage === 'submit' && <SubmitArticlePage onNavigate={navigate} />}
-        {currentPage === 'login' && (
-          <LoginPage onNavigate={navigate} onLoginSuccess={handleLoginSuccess} />
-        )}
-        {currentPage === 'admin' && user && (
-          <AdminPage onNavigate={navigate} onLogout={handleLogout} />
-        )}
+        <Routes>
+          <Route path="/" element={<HomePage onNavigate={routeNavigate} />} />
+
+          <Route
+            path="/articles"
+            element={<ArticlesPage onNavigate={routeNavigate} />}
+          />
+
+          <Route
+            path="/articles/:slug"
+            element={<ArticleRouteWrapper onNavigate={routeNavigate} />}
+          />
+
+          <Route
+            path="/submit"
+            element={<SubmitArticlePage onNavigate={routeNavigate} />}
+          />
+
+          <Route
+            path="/write-for-us"
+            element={<SubmitArticlePage onNavigate={routeNavigate} />}
+          />
+
+          <Route
+            path="/login"
+            element={
+              <LoginPage
+                onNavigate={routeNavigate}
+                onLoginSuccess={handleLoginSuccess}
+              />
+            }
+          />
+
+          <Route
+            path="/admin"
+            element={
+              user ? (
+                <AdminPage onNavigate={routeNavigate} onLogout={handleLogout} />
+              ) : (
+                <Navigate to="/login" replace />
+              )
+            }
+          />
+
+          <Route path="*" element={<Navigate to="/" replace />} />
+        </Routes>
       </main>
 
-      {!hideChrome && <Footer onNavigate={navigate} />}
+      {!hideChrome && <Footer onNavigate={routeNavigate} />}
     </div>
   );
+}
+
+function ArticleRouteWrapper({
+  onNavigate,
+}: {
+  onNavigate: (page: Page, slug?: string) => void;
+}) {
+  const { slug } = useParams();
+
+  return <ArticlePage slug={slug || ""} onNavigate={onNavigate} />;
 }
