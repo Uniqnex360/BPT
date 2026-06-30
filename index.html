@@ -2,47 +2,89 @@
 <html lang="en">
   <head>
     <meta charset="UTF-8" />
+
+    <!-- Favicon -->
     <link rel="icon" type="image/png" href="/image.png" />
+
+    <!-- Responsive -->
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Be Positive Thinking – Transform Your Mindset, Transform Your Life</title>
+
+    <!-- SEO -->
+    <title>
+      Be Positive Thinking – Transform Your Mindset, Transform Your Life
+    </title>
+
     <meta
       name="description"
       content="Be Positive Thinking shares motivational thoughts, mindset advice, and self-improvement content designed to inspire positivity and personal transformation."
     />
-    <meta property="og:title" content="bepositivethinking" />
+
+    <!-- Canonical URL -->
+    <link rel="canonical" href="https://bepositivethinking.com" />
+
+    <!-- Open Graph (LinkedIn / Facebook / WhatsApp) -->
+    <meta property="og:title" content="Be Positive Thinking" />
+
     <meta
       property="og:description"
       content="Weekly doses of positivity, mindfulness, and growth."
     />
+
+    <meta property="og:site_name" content="Be Positive Thinking" />
+
+    <meta property="og:url" content="https://bepositivethinking.com" />
+
+    <meta property="og:type" content="website" />
+
+    <!-- Replace with your own image -->
     <meta
       property="og:image"
-      content="https://bolt.new/static/og_default.png"
+      content="https://bepositivethinking.com/image.png"
     />
+
+    <!-- Twitter -->
     <meta name="twitter:card" content="summary_large_image" />
+
+    <meta name="twitter:title" content="Be Positive Thinking" />
+
+    <meta
+      name="twitter:description"
+      content="Weekly doses of positivity, mindfulness, and growth."
+    />
+
     <meta
       name="twitter:image"
-      content="https://bolt.new/static/og_default.png"
+      content="https://bepositivethinking.com/image.png"
     />
+
+    <!-- Fonts -->
     <link rel="preconnect" href="https://fonts.googleapis.com" />
+
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+
     <link
       href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;900&display=swap"
       rel="stylesheet"
     />
-    <!-- Google Analytics — replace G-XXXXXXXXXX with your Measurement ID from analytics.google.com -->
+
+    <!-- Google Analytics -->
     <script
       async
       src="https://www.googletagmanager.com/gtag/js?id=G-XXXXXXXXXX"
     ></script>
+
     <script>
       window.dataLayer = window.dataLayer || [];
+
       function gtag() {
         dataLayer.push(arguments);
       }
+
       gtag("js", new Date());
       gtag("config", "G-XXXXXXXXXX");
     </script>
   </head>
+
   <body>
     <div id="root"></div>
     <script type="module" src="/src/main.tsx"></script>
