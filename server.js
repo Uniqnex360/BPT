@@ -47,29 +47,30 @@ app.get("/articles/:slug", async (req, res, next) => {
           "Weekly doses of positivity, mindfulness, and growth.";
         const image =
           data.cover_image || "https://bepositivethinking.com/image.png";
-        const url = `https://bepositivethinking.com/articles/${slug}`;
+        const url = `https://bpt-e5wg.onrender.com/articles/${slug}`;
 
-        // Replace global fallback meta tags with article-specific ones
-        html = html
-          .replace(/<title>.*?<\/title>/, `<title>${title}</title>`)
-          .replace(
-            /content="https:\/\/bepositivethinking\.com\/image\.png"/g,
-            `content="${image}"`,
-          )
-          .replace(
-            /content="Weekly doses of positivity, mindfulness, and growth\."/g,
-            `content="${description}"`,
-          )
-          .replace(/content="Be Positive Thinking"/g, `content="${title}"`)
-          .replace(
-            /content="https:\/\/bepositivethinking\.com"/g,
-            `content="${url}"`,
-          );
+        // Dynamically inject custom social tags right before closing </head>
+        const dynamicMetaTags = `
+        <title>${title}</title>
+        <meta property="og:title" content="${title}" />
+        <meta property="og:description" content="${description}" />
+        <meta property="og:image" content="${image}" />
+        <meta property="og:url" content="${url}" />
+        <meta property="og:type" content="article" />
+        <meta name="twitter:card" content="summary_large_image" />
+        <meta name="twitter:title" content="${title}" />
+        <meta name="twitter:description" content="${description}" />
+        <meta name="twitter:image" content="${image}" />
+      </head>`;
+
+        // Strip original static title tag & append our updated tags safely
+        html = html.replace(/<title>.*?<\/title>/gi, "");
+        html = html.replace("</head>", dynamicMetaTags);
 
         return res.send(html);
       }
     } catch (e) {
-      console.error(e);
+      console.error("Error fetching article metadata:", e);
     }
   }
 
