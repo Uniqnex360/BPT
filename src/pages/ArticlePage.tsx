@@ -60,6 +60,67 @@ export default function ArticlePage({ slug, onNavigate }: Props) {
     fetchArticle();
   }, [slug]);
 
+  // Helper function that formats raw content text and changes media URLs into actual elements
+  function renderMediaContent(htmlContent: string) {
+    if (!htmlContent) return "";
+
+    let parsedContent = htmlContent;
+
+    // 1. CRITICAL FIX: Find any broken <video> blocks wrapping a YouTube link and convert them to clean iframes
+    const wrappedYoutubeRegex =
+      /<video[^>]*>[\s\S]*?(https?:\/\/(?:www\.)?(?:youtube\.com\/watch\?v=|youtu\.be\/)([\w\-]+)[^\s"<]*?)[\s\S]*?<\/video>/g;
+    parsedContent = parsedContent.replace(
+      wrappedYoutubeRegex,
+      (match, url, videoId) => {
+        return `<div style="margin: 24px 0; position: relative; padding-bottom: 56.25%; height: 0; overflow: hidden; border-radius: 16px; background: #000;">
+      <iframe 
+        src="https://www.youtube.com/embed/${videoId}" 
+        style="position: absolute; top: 0; left: 0; width: 100%; height: 100%; border: 0;" 
+        allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" 
+        allowfullscreen>
+      </iframe>
+    </div>`;
+      },
+    );
+
+    // 2. Catch any standalone plain text YouTube links just in case
+    const plainYoutubeRegex =
+      /(?<!src=")(https?:\/\/(?:www\.)?(?:youtube\.com\/watch\?v=|youtu\.be\/)([\w\-]+)[^\s"<]*)/g;
+    parsedContent = parsedContent.replace(
+      plainYoutubeRegex,
+      (match, url, videoId) => {
+        return `<div style="margin: 24px 0; position: relative; padding-bottom: 56.25%; height: 0; overflow: hidden; border-radius: 16px; background: #000;">
+      <iframe 
+        src="https://www.youtube.com/embed/${videoId}" 
+        style="position: absolute; top: 0; left: 0; width: 100%; height: 100%; border: 0;" 
+        allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" 
+        allowfullscreen>
+      </iframe>
+    </div>`;
+      },
+    );
+
+    // 3. Keep working direct MP4 files untouched
+    const videoRegex =
+      /(?<!source src=")(https?:\/\/[^\s"<]+(?:\.mp4|\.webm|\.mov)[^\s"<]*)/g;
+    parsedContent = parsedContent.replace(videoRegex, (url) => {
+      if (
+        url.includes("iframe") ||
+        url.includes("<video") ||
+        url.includes("youtube.com") ||
+        url.includes("youtu.be")
+      )
+        return url;
+      return `<div style="margin: 24px 0;">
+      <video controls playsinline preload="metadata" width="100%" style="border-radius: 16px; display: block; background: #000;">
+        <source src="${url}" type="video/mp4" />
+      </video>
+    </div>`;
+    });
+
+    return parsedContent;
+  }
+
   if (loading) {
     return (
       <div
@@ -145,7 +206,7 @@ export default function ArticlePage({ slug, onNavigate }: Props) {
           <ArrowLeft size={16} /> Back to Articles
         </button>
 
-        {/* Meta */}
+        {/* Categories / Meta details */}
         <div className="flex flex-wrap items-center gap-3 mb-6">
           <span className="flex items-center gap-1 text-xs text-pink-600 font-medium bg-pink-50 px-3 py-1.5 rounded-full border border-pink-100">
             <Tag size={11} /> {article.category}
@@ -168,10 +229,12 @@ export default function ArticlePage({ slug, onNavigate }: Props) {
           {article.excerpt}
         </p>
 
-        {/* Author */}
+        {/* Profile metadata */}
         <div className="flex items-center gap-3 mb-10">
           <div className="w-10 h-10 rounded-full bg-gradient-to-br from-pink-400 to-rose-500 flex items-center justify-center text-white font-bold text-sm">
-            B
+            {article.author_name
+              ? article.author_name.charAt(0).toUpperCase()
+              : "B"}
           </div>
           <div>
             <p className="font-semibold text-gray-800 text-sm">
@@ -181,13 +244,15 @@ export default function ArticlePage({ slug, onNavigate }: Props) {
           </div>
         </div>
 
-        {/* Content */}
+        {/* Main Content Render Box using custom layout parser */}
         <div
-          className="prose prose-lg prose-gray max-w-none"
-          dangerouslySetInnerHTML={{ __html: article.content }}
+          className="prose prose-lg prose-gray max-w-none prose-img:rounded-2xl"
+          dangerouslySetInnerHTML={{
+            __html: renderMediaContent(article.content),
+          }}
         />
 
-        {/* Nav */}
+        {/* Bottom Nav Bar details */}
         <div className="mt-12 pt-8 border-t border-pink-100 flex flex-col sm:flex-row gap-4 items-center justify-between">
           <button
             onClick={() => onNavigate("articles")}
@@ -203,7 +268,7 @@ export default function ArticlePage({ slug, onNavigate }: Props) {
         <CommentsSection articleId={article.id} />
       </div>
 
-      {/* Related Articles */}
+      {/* Related Content grid */}
       {related.length > 0 && (
         <div className="bg-white border-t border-pink-50 py-16">
           <div className="max-w-6xl mx-auto px-6">
