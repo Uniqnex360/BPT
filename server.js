@@ -21,8 +21,10 @@ const indexHtmlPath = path.join(__dirname, "dist", "index.html");
 
 app.get("/articles/:slug", async (req, res, next) => {
   const userAgent = req.headers["user-agent"] || "";
+
+  // Added SkypeUriPreview, MicrosoftPreview, BingPreview, and Applebot
   const isBot =
-    /facebookexternalhit|WhatsApp|twitterbot|linkedinbot|telegrambot|slackbot|discordbot/i.test(
+    /facebookexternalhit|WhatsApp|twitterbot|linkedinbot|telegrambot|slackbot|discordbot|SkypeUriPreview|MicrosoftPreview|BingPreview|Applebot/i.test(
       userAgent,
     );
 
