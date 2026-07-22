@@ -7,6 +7,7 @@ import {
   PenLine,
   Eye,
   Edit3,
+  Link as LinkIcon,
 } from "lucide-react";
 import { supabase, type Category } from "../lib/supabase";
 import type { Page } from "../App";
@@ -123,7 +124,7 @@ export default function SubmitArticlePage({ onNavigate }: Props) {
     }
   }
 
-  // Paste Url Logic
+  // Paste Url Logic (Images & Videos)
   function addMediaUrl(type: "image" | "video") {
     const clean = mediaUrl.trim();
     if (!clean) return;
@@ -132,6 +133,33 @@ export default function SubmitArticlePage({ onNavigate }: Props) {
       type === "video"
         ? `\n<video controls width="100%" style="border-radius:12px; margin:12px 0;"><source src="${clean}" /></video>\n`
         : `\n<img src="${clean}" alt="Linked asset" style="max-width:100%; border-radius:12px; margin:12px 0; display:block;" />\n`;
+
+    insertMarkup(html);
+    setMediaUrl("");
+  }
+
+  // Hyperlink Logic (Documents & External Websites)
+  function addHyperlink() {
+    const clean = mediaUrl.trim();
+    if (!clean) return;
+
+    const textarea = textareaRef.current;
+    let selectedText = "";
+
+    if (textarea) {
+      selectedText = textarea.value.substring(
+        textarea.selectionStart,
+        textarea.selectionEnd,
+      );
+    }
+
+    // Use highlighted text, or ask for a label, or default to the URL
+    const label =
+      selectedText ||
+      window.prompt("Enter display text for this link:", "Read Document") ||
+      clean;
+
+    const html = `<a href="${clean}" target="_blank" rel="noopener noreferrer" style="color: #ec4899; font-weight: 600; underline: true;">${label}</a>`;
 
     insertMarkup(html);
     setMediaUrl("");
@@ -317,14 +345,22 @@ export default function SubmitArticlePage({ onNavigate }: Props) {
                   <button
                     type="button"
                     onClick={() => setActiveTab("write")}
-                    className={`inline-flex items-center gap-1 px-3 py-1 text-xs font-medium rounded-md transition-all ${activeTab === "write" ? "bg-white text-gray-900 shadow-sm" : "text-gray-500 hover:text-gray-900"}`}
+                    className={`inline-flex items-center gap-1 px-3 py-1 text-xs font-medium rounded-md transition-all ${
+                      activeTab === "write"
+                        ? "bg-white text-gray-900 shadow-sm"
+                        : "text-gray-500 hover:text-gray-900"
+                    }`}
                   >
                     <Edit3 size={12} /> Write
                   </button>
                   <button
                     type="button"
                     onClick={() => setActiveTab("preview")}
-                    className={`inline-flex items-center gap-1 px-3 py-1 text-xs font-medium rounded-md transition-all ${activeTab === "preview" ? "bg-white text-gray-900 shadow-sm" : "text-gray-500 hover:text-gray-900"}`}
+                    className={`inline-flex items-center gap-1 px-3 py-1 text-xs font-medium rounded-md transition-all ${
+                      activeTab === "preview"
+                        ? "bg-white text-gray-900 shadow-sm"
+                        : "text-gray-500 hover:text-gray-900"
+                    }`}
                   >
                     <Eye size={12} /> Live Preview
                   </button>
@@ -339,7 +375,7 @@ export default function SubmitArticlePage({ onNavigate }: Props) {
                     value={form.content}
                     onChange={(e) => set("content", e.target.value)}
                     rows={14}
-                    placeholder="Write your article copy here. Use the utility frame below to add file media or link structures cleanly."
+                    placeholder="Write your article copy here. Use the utility frame below to add images, videos, documents, or website links cleanly."
                     className="w-full p-4 text-sm font-mono focus:outline-none border-none shadow-none resize-y block"
                   />
                 ) : (
@@ -354,12 +390,12 @@ export default function SubmitArticlePage({ onNavigate }: Props) {
                   />
                 )}
 
-                {/* Lower Asset Generation Dashboard Bar Panel */}
+                {/* Lower Utility Dashboard Bar Panel */}
                 <div className="bg-pink-50/30 border-t border-gray-100 p-3">
                   <div className="flex flex-col sm:flex-row gap-3 items-start sm:items-center">
-                    {/* Native System File Uploader Button */}
+                    {/* Native File Uploader */}
                     <label className="cursor-pointer px-4 py-2 bg-pink-500 hover:bg-pink-600 text-white font-semibold text-xs rounded-lg transition-colors inline-block shadow-sm shrink-0">
-                      {uploading ? "Uploading..." : "Upload Image / Video"}
+                      {uploading ? "Uploading..." : "Upload File"}
                       <input
                         type="file"
                         accept="image/*,video/*"
@@ -372,29 +408,38 @@ export default function SubmitArticlePage({ onNavigate }: Props) {
                       />
                     </label>
 
-                    <span className="text-xs text-gray-400 font-bold">OR</span>
+                    <span className="text-xs text-gray-400 font-bold hidden sm:inline">
+                      OR
+                    </span>
 
-                    {/* Uniform Link Management Node */}
-                    <div className="flex-1 w-full flex gap-1.5">
+                    {/* URL Link Action Bar */}
+                    <div className="flex-1 w-full flex flex-wrap sm:flex-nowrap gap-1.5">
                       <input
                         value={mediaUrl}
                         onChange={(e) => setMediaUrl(e.target.value)}
-                        placeholder="Paste image or video link URL string..."
-                        className="flex-1 px-3 py-1.5 border border-gray-200 rounded-lg text-xs focus:outline-none bg-white"
+                        placeholder="Paste image, video, doc, or website URL..."
+                        className="flex-1 min-w-[180px] px-3 py-1.5 border border-gray-200 rounded-lg text-xs focus:outline-none bg-white"
                       />
                       <button
                         type="button"
                         onClick={() => addMediaUrl("image")}
-                        className="px-3 py-1.5 bg-blue-500 hover:bg-blue-600 text-white font-semibold text-xs rounded-lg shadow-sm shrink-0"
+                        className="px-2.5 py-1.5 bg-blue-500 hover:bg-blue-600 text-white font-semibold text-xs rounded-lg shadow-sm shrink-0"
                       >
-                        + Image Link
+                        + Image
                       </button>
                       <button
                         type="button"
                         onClick={() => addMediaUrl("video")}
-                        className="px-3 py-1.5 bg-green-500 hover:bg-green-600 text-white font-semibold text-xs rounded-lg shadow-sm shrink-0"
+                        className="px-2.5 py-1.5 bg-green-500 hover:bg-green-600 text-white font-semibold text-xs rounded-lg shadow-sm shrink-0"
                       >
-                        + Video Link
+                        + Video
+                      </button>
+                      <button
+                        type="button"
+                        onClick={addHyperlink}
+                        className="px-2.5 py-1.5 bg-purple-500 hover:bg-purple-600 text-white font-semibold text-xs rounded-lg shadow-sm shrink-0 inline-flex items-center gap-1"
+                      >
+                        <LinkIcon size={12} /> + Doc / Link
                       </button>
                     </div>
                   </div>
