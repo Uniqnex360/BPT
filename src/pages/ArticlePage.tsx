@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import { Helmet } from "react-helmet-async";
 import {
   ArrowLeft,
   Clock,
@@ -145,9 +146,12 @@ export default function ArticlePage({ slug, onNavigate }: Props) {
         <h1 className="text-2xl font-bold text-gray-800 mb-2">
           Article not found
         </h1>
+        <p className="text-gray-500 mb-6">
+          This article may have been removed or doesn't exist.
+        </p>
         <button
           onClick={() => onNavigate("articles")}
-          className="inline-flex items-center gap-2 bg-gradient-to-r from-pink-500 to-rose-500 text-white px-6 py-3 rounded-full font-medium shadow-sm"
+          className="inline-flex items-center gap-2 bg-gradient-to-r from-pink-500 to-rose-500 text-white px-6 py-3 rounded-full font-medium hover:from-pink-600 hover:to-rose-600 transition-all"
         >
           <ArrowLeft size={16} /> Back to Articles
         </button>
@@ -170,7 +174,19 @@ export default function ArticlePage({ slug, onNavigate }: Props) {
         background: "linear-gradient(180deg, #fff0f6 0%, #f8fafc 100%)",
       }}
     >
-      {/* Cover Header */}
+      {/* Hero Image */}
+
+      <Helmet>
+        <title>{article.title}</title>
+
+        <meta name="description" content={article.excerpt} />
+
+        <meta property="og:title" content={article.title} />
+        <meta property="og:description" content={article.excerpt} />
+        <meta property="og:image" content={article.cover_image || "https://bepositivethinking.com/image.png"} />
+        <meta property="og:url" content={window.location.href} />
+      </Helmet>
+
       {article.cover_image && (
         <div className="relative w-full h-64 md:h-96 overflow-hidden">
           <img
